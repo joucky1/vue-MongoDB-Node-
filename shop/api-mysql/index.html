@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品列表</title>
+    <link rel="stylesheet" href="./bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+
+</head>
+
+<body>
+
+    <div class="app">
+
+
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">添加</h3>
+            </div>
+            <div class="panel-body form-inline">
+                NAME：<input type="text" v-model="name">
+
+                <input type="button" value="ADD" v-on:click.prevent="addAllList">
+
+            </div>
+        </div>
+
+
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>DELETE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in list" v-bind:key="item.id">
+                    <th>{{item.id}}</th>
+                    <th>{{item.name}}</th>
+                    <th><a href="#" v-on:click.prevent="delAllList(item.id)">删除</a></th>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+    </div>
+
+
+
+    <script>
+        Vue.http.options.root = "http://127.0.0.1:8080/"
+        Vue.http.options.emulateJSON = true
+
+        var vm = new Vue({
+            el: '.app',
+            data: {
+                name: '',
+                list: [],
+            },
+            created() {
+                this.getAllList()
+            },
+            methods: {
+                getAllList() {
+                    this.$http.get("listUsers").then(
+                        result => {
+                            if (result.body != "") {
+                                this.list = result.body
+                            } else if (result.body == "") {
+                                this.list = result.body
+                                alert("数据为空了！！！")
+                            }else{
+                                alert("请求数据失败！！！")
+                            }
+                        })
+                },
+
+                addAllList() {
+                    this.$http.post("addUser", {
+                        name: this.name
+                    }).then(
+                        result => {
+                            this.getAllList()
+                            this.name = ""
+                        })
+                },
+                delAllList(id) {
+                    this.$http.get("deleteUser" + id)
+                        .then(
+                            result => {
+                                this.getAllList()
+                            })
+                }
+            },
+        })
+    </script>
+
+</body>
+
+</html>

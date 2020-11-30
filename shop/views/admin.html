@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品列表</title>
+    <link rel="stylesheet" href="../public/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+</head>
+
+<body>
+
+    <div id="app">
+        <template>
+            <el-row id="scroll"></el-row>
+            <el-row>
+                <el-col :span="24">
+                    <el-tabs style="margin: 0 10px;">
+
+                        <!-- 一 -->
+                        <el-tab-pane label="商品管理">
+                            <el-tabs type="border-card" v-model="Tab">
+                                <el-tab-pane label="浏览商品" name="one" @click="Tab=one">
+                                    <el-row style="margin-bottom: 20px;">
+                                        <el-col :span="8" style="margin-right: 20px;">
+                                            <el-input v-model="ss_goods_name" placeholder="请输入搜索的商品名" clearable>
+                                            </el-input>
+                                        </el-col>
+                                    </el-row>
+                                    <table class="table table-bordered table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>商品ID</th>
+                                                <th>商品名</th>
+                                                <th>商品单价</th>
+                                                <th>商品原单价</th>
+                                                <th>商品图片地址</th>
+                                                <th>商品类别ID</th>
+                                                <th>商品详情</th>
+                                                <th>修改商品</th>
+                                                <th>删除商品</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="item in ss(ss_goods_name)" v-bind:key="item.goods_id">
+                                                <th>{{item.goods_id}}</th>
+                                                <th>{{item.goods_name}}</th>
+                                                <th>{{item.goods_price}}</th>
+                                                <th>{{item.goods_old_price}}</th>
+                                                <th>{{item.goods_src}}</th>
+                                                <th>{{item.category_id}}</th>
+                                                <th>{{item.goods_detail}}</th>
+                                                <th><a href="#"
+                                                        v-on:click.prevent="update_goods(item.goods_id,item.goods_name,item.goods_price,item.goods_old_price,item.goods_src,item.category_id,item.goods_detail)">修改</a>
+                                                </th>
+                                                <th><a href="#" v-on:click.prevent="delete_goods(item.goods_id)">删除</a>
+                                                </th>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </el-tab-pane>
+                                <el-tab-pane label="添加商品" name="two" @click="Tab=two">
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <form action="http://127.0.0.1:8080/add_goods" method="POST">
+                                                <label for="goods_name">1.goods_name：</label>
+                                                <el-input size="small" placeholder="请输入商品名" id="goods_name"
+                                                    v-model="goods_name" clearable>
+                                                </el-input>
+                                                <hr>
+                                                <label for="goods_price">2.goods_price：</label>
+                                                <el-input size="small" placeholder="请输入商品单价" id="goods_price"
+                                                    v-model="goods_price" clearable>
+                                                </el-input>
+                                                <hr>
+                                                <label for="goods_old_price">3.goods_old_price：</label>
+                                                <el-input size="small" placeholder="请输入商品原单价" id="goods_old_price"
+                                                    v-model="goods_old_price" clearable></el-input>
+                                                <hr>
+                                                <label for="goods_src">4.goods_src：</label>
+                                                <el-input size="small" placeholder="请输入图片地址" id="goods_src"
+                                                    v-model="goods_src" clearable>
+                                                    <!-- <template slot="prepend">Http://</template>
+                                                    <template slot="append">.com</template> -->
+                                                </el-input>
+                                                <hr>
+                                                <label>5.category_id：</label><template size="small">
+                                                    <el-select size="small" v-model="category_id_value"
+                                                        placeholder="请选择商品类型">
+                                                        <el-option v-for="item in category_id_list"
+                                                            v-bind:key="item.category_id"
+                                                            v-bind:label="item.category_name"
+                                                            v-bind:value="item.category_id">
+                                                            <span style="float: left">{{ item.category_name }}</span>
+                                                            <span
+                                                                style="float: right; color: #8492a6; font-size: 13px">{{ item.category_id }}</span>
+                                                        </el-option>
+                                                    </el-select>
+                                                </template>
+                                                <hr>
+                                                <label>6.goods_detail：</label>
+                                                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 5}"
+                                                    placeholder="请输入商品详情" v-model="goods_detail"
+                                                    style="padding-bottom: 20px;">
+                                                </el-input>
+
+                                                <el-row>
+                                                    <el-button type="success" v-on:click.prevent="add_goods()">添加
+                                                    </el-button>
+
+                                                    <el-button type="success" v-on:click.prevent="f1()">清空
+                                                    </el-button>
+                                                </el-row>
+                                                <hr>
+                                            </form>
+                                        </el-col>
+                                    </el-row>
+                                </el-tab-pane>
+                                <el-tab-pane label="修改商品" name="three" @click="Tab=three">
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <form action="" method="POST">
+                                                <label for="goods_id2">1.goods_id（目标商品修改定位）：</label>
+                                                <el-input size="small" placeholder="请输入商品ID" id="goods_id2"
+                                                    v-model="goods_id" clearable>
+                                                </el-input>
+                                                <hr>
+                                                <label for="goods_name2">2.goods_name：</label>
+                                                <el-input size="small" placeholder="请输入商品名" id="goods_name2"
+                                                    v-model="goods_name" clearable>
+                                                </el-input>
+                                                <hr>
+                                                <label for="goods_price2">3.goods_price：</label>
+                                                <el-input size="small" placeholder="请输入商品单价" id="goods_price2"
+                                                    v-model="goods_price" clearable>
+                                                </el-input>
+                                                <hr>
+                                                <label for="goods_old_price2">4.goods_old_price：</label>
+                                                <el-input size="small" placeholder="请输入商品原单价" id="goods_old_price2"
+                                                    v-model="goods_old_price" clearable></el-input>
+                                                <hr>
+                                                <label for="goods_src2">5.goods_src：</label>
+                                                <el-input size="small" placeholder="请输入图片地址" id="goods_src2"
+                                                    v-model="goods_src" clearable>
+                                                    <!-- <template slot="prepend">Http://</template>
+                                                    <template slot="append">.com</template> -->
+                                                </el-input>
+                                                <hr>
+                                                <label>6.category_id：</label><template size="small">
+                                                    <el-select size="small" v-model="category_id_value"
+                                                        placeholder="请选择商品类型">
+                                                        <el-option v-for="item in category_id_list"
+                                                            v-bind:key="item.category_id"
+                                                            v-bind:label="item.category_name"
+                                                            v-bind:value="item.category_id">
+                                                            <span style="float: left">{{ item.category_name }}</span>
+                                                            <span
+                                                                style="float: right; color: #8492a6; font-size: 13px">{{ item.category_id }}</span>
+                                                        </el-option>
+                                                    </el-select>
+                                                </template>
+                                                <hr>
+                                                <label>7.goods_detail：</label>
+                                                <el-input type="textarea" :autosize="{ minRows: 3, maxRows: 5}"
+                                                    placeholder="请输入商品详情" v-model="goods_detail"
+                                                    style="padding-bottom: 20px;">
+                                                </el-input>
+
+                                                <el-row>
+                                                    <el-button type="success" v-on:click.prevent="update_goods2()">修改
+                                                    </el-button>
+
+                                                    <el-button type="success" v-on:click.prevent="f2()">修改
+                                                    </el-button>
+                                                </el-row>
+                                                <hr>
+                                            </form>
+                                        </el-col>
+                                    </el-row>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-tab-pane>
+
+                        <!-- 二 -->
+                        <el-tab-pane label="商品类别管理">
+                            <el-tabs type="border-card" v-model="Tab2">
+                                <el-tab-pane label="浏览商品类别" name="one" @click="Tab2=one">
+                                    <el-row style="margin-bottom: 20px;">
+                                        <el-col :span="8" style="margin-right: 20px;">
+                                            <el-input v-model="ss_category_name" placeholder="请输入搜索的商品类别名" clearable>
+                                            </el-input>
+                                        </el-col>
+                                    </el-row>
+                                    <table class="table table-bordered table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>商品类别ID</th>
+                                                <th>商品类别名</th>
+                                                <th>修改商品类别</th>
+                                                <th>删除商品类别</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="item in ss_category(ss_category_name)"
+                                                v-bind:key="item.category_id">
+                                                <th>{{item.category_id}}</th>
+                                                <th>{{item.category_name}}</th>
+                                                <th><a href="#"
+                                                        v-on:click.prevent="update_catrgory(item.category_id,item.category_name)">修改</a>
+                                                </th>
+                                                <th><a href="#"
+                                                        v-on:click.prevent="delete_category(item.category_id)">删除</a>
+                                                </th>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </el-tab-pane>
+                                <el-tab-pane label="添加商品类别" name="two" @click="Tab2=two">
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <form action="http://127.0.0.1:8080/add_category" method="POST">
+                                                <label for="category_name3">1.category_name：</label>
+                                                <el-input size="small" placeholder="请输入商品类别名" id="category_name3"
+                                                    v-model="category_name" clearable>
+                                                </el-input>
+                                                <hr>
+
+                                                <el-row>
+                                                    <el-button type="success" v-on:click.prevent="add_category()">添加
+                                                    </el-button>
+
+                                                    <el-button type="success" v-on:click.prevent="f3()">清空
+                                                    </el-button>
+                                                </el-row>
+                                                <hr>
+                                            </form>
+                                        </el-col>
+                                    </el-row>
+                                </el-tab-pane>
+                                <el-tab-pane label="修改商品类别" name="three" @click="Tab2=three">
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <form action="" method="POST">
+                                                <label for="category_id">1.category_id（目标商品类别修改定位）：</label>
+                                                <el-input size="small" placeholder="请输入商品ID" id="category_id"
+                                                    v-model="category_id" clearable>
+                                                </el-input>
+                                                <hr>
+                                                <label for="category_name">2.category_name：</label>
+                                                <el-input size="small" placeholder="请输入商品名" id="category_name"
+                                                    v-model="category_name" clearable>
+                                                </el-input>
+                                                <hr>
+
+                                                <el-row>
+                                                    <el-button type="success" v-on:click.prevent="update_category2()">修改
+                                                    </el-button>
+
+                                                    <el-button type="success" v-on:click.prevent="f4()">清空
+                                                    </el-button>
+                                                </el-row>
+                                                <hr>
+                                            </form>
+                                        </el-col>
+                                    </el-row>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-tab-pane>
+
+                        <!-- 三 -->
+                        <el-tab-pane label="图片管理">
+                            <el-tabs type="border-card">
+                                <el-tab-pane label="上传图片">
+                                    <input type="file" id="file">
+                                    <el-button type="file primary" onclick="doUpload()">上传</el-button>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-tab-pane>
+
+                        <!-- 四 -->
+                        <el-tab-pane label="用户管理">
+                            <el-tabs type="border-card">
+                                <el-tab-pane label="浏览用户">
+                                    <el-row style="margin-bottom: 20px;">
+                                        <el-col :span="8" style="margin-right: 20px;">
+                                            <el-input v-model="ss_user_username" placeholder="请输入搜索的用户账号" clearable>
+                                            </el-input>
+                                        </el-col>
+                                    </el-row>
+                                    <table class="table table-bordered table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>用户ID</th>
+                                                <th>用户账号</th>
+                                                <th>用户密码</th>
+                                                <th>用户名</th>
+                                                <th>用户地址</th>
+                                                <th>用户电话</th>
+                                                <th>删除用户</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="item in ss_user(ss_user_username)" v-bind:key="item.user_id">
+                                                <th>{{item.user_id}}</th>
+                                                <th>{{item.user_username}}</th>
+                                                <th>{{item.user_password}}</th>
+                                                <th>{{item.user_name}}</th>
+                                                <th>{{item.user_address}}</th>
+                                                <th>{{item.user_phone}}</th>
+                                                <th><a href="#" v-on:click.prevent="delete_user(item.user_id)">删除</a>
+                                                </th>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-col>
+            </el-row>
+        </template>
+        <div class="el-backtop" style="right: 10px; bottom: 20px;">
+            <a href="#scroll"><i class="el-icon-caret-top"></i></a>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+
+    <!-- 导入js文件 -->
+    <script src="http://127.0.0.1:8080/public/js/admin2.js"></script>
+
+</body>
+
+</html>
